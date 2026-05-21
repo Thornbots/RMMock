@@ -33,7 +33,7 @@ func PacketFactory(frameID, sliceID uint16, frameSize uint32, sliceData []byte) 
 
 func SendPacket(conn *net.UDPConn, encodedData []byte, frameID uint16) {
 	// 计算需要多少个切片
-	packetSize := 1000 // UDP包最大推荐大小，留出头部空间
+	packetSize := 1400// UDP包最大推荐大小，留出头部空间
 	frameSize := len(encodedData)
 	totalSlices := frameSize / packetSize
 	if len(encodedData)%packetSize != 0 {

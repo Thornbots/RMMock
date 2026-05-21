@@ -18,17 +18,26 @@
 
 ## 环境依赖
 
-- OpenCV>=4.5
-- FFmpeg
-- Golang>=1.24 （仅编译需要）
+本项目主要依赖以下环境：
 
-仅在 Linux 下测试，理论上 Windows 和 MacOS 装好环境也能用
+- OpenCV >= 4.5
+- FFmpeg
+- Golang >= 1.24 (仅编译需要)
+
+### 使用 Nix (推荐，可选)
+
+如果你安装了 [Nix](https://nixos.org/), 可以使用下面的方式而无需安装依赖.
+- **启动项目** `nix run`
+- **进入开发环境**: `nix develop`
+- **使用 direnv**: 如果安装了 [direnv](https://direnv.net/)，执行 `direnv allow` 即可在进入项目目录时自动配置好所有环境变量和依赖。
+
+本项目仅在 Linux 下测试，理论上 Windows (WSL2) 和 macOS 在配置好环境后也可运行。
 
 编译时加上 tag `opencvstatic` 可以使 OpenCV 变为编译期依赖，但编译出来的二进制文件会非常大，不建议这样操作
 
 ## 使用方法
 
-编译：
+### 传统编译方式
 
 ```shell
 git clone https://github.com/stydxm/RMMock.git
@@ -36,10 +45,17 @@ cd RMMock
 go build .
 ```
 
-运行：
+### 使用 Nix 编译 (可选)
 
 ```shell
-./RMMock
+nix build
+# 编译后的二进制文件位于 ./result/bin/rmmock
+```
+
+### 运行
+
+```shell
+./RMMock # 或者使用 nix build 后的 ./result/bin/rmmock
 ```
 
 > 视频画面来源目前为 `0`，即第一个摄像头，编辑 `main.go` 中的 `streamSource` 可以设置为 OpenCV 兼容的所有来源，包括本地文件、URL等

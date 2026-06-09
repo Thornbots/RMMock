@@ -23,9 +23,9 @@ func GetUDPConn() *net.UDPConn {
 func PacketFactory(frameID, sliceID uint16, frameSize uint32, sliceData []byte) []byte {
 	packet := make([]byte, 8+len(sliceData))
 
-	binary.LittleEndian.PutUint16(packet[0:2], frameID)
-	binary.LittleEndian.PutUint16(packet[2:4], sliceID)
-	binary.LittleEndian.PutUint32(packet[4:8], frameSize)
+	binary.BigEndian.PutUint16(packet[0:2], frameID)
+	binary.BigEndian.PutUint16(packet[2:4], sliceID)
+	binary.BigEndian.PutUint32(packet[4:8], frameSize)
 	copy(packet[8:], sliceData)
 
 	return packet
@@ -33,7 +33,7 @@ func PacketFactory(frameID, sliceID uint16, frameSize uint32, sliceData []byte) 
 
 func SendPacket(conn *net.UDPConn, encodedData []byte, frameID uint16) {
 	// 计算需要多少个切片
-	packetSize := 1400// UDP包最大推荐大小，留出头部空间
+	packetSize := 1400 - 8// UDP包最大推荐大小，留出头部空间
 	frameSize := len(encodedData)
 	totalSlices := frameSize / packetSize
 	if len(encodedData)%packetSize != 0 {

@@ -7,20 +7,20 @@ import (
 	"sync"
 )
 
-// StartEncodedStream 启动带HEVC编码的视频流
+// StartEncodedStream starts an HEVC-encoded video stream
 func StartEncodedStream[T interface{ int | string }](source T, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	conn := GetUDPConn()
-	logrus.Info("成功连接到UDP服务器")
+	logrus.Info("connected to UDP server")
 	defer conn.Close()
 
 	stream := GetOpencvVideoStream(source)
 	defer stream.Close()
 	streamParam := GetOpenCVCaptureParam(stream)
-	logrus.Debugf("视频分辨率: %dx%d, FPS: %.2f", streamParam.frameWidth, streamParam.frameHeight, streamParam.fps)
+	logrus.Debugf("video resolution: %dx%d, FPS: %.2f", streamParam.frameWidth, streamParam.frameHeight, streamParam.fps)
 
-	// 创建HEVC编码器
+// create the HEVC encoder
 	encoder, err := FFmpegEncoderFactory(EncoderConfig{
 		Width:         streamParam.frameWidth,
 		Height:        streamParam.frameHeight,
@@ -31,24 +31,24 @@ func StartEncodedStream[T interface{ int | string }](source T, wg *sync.WaitGrou
 		RepeatHeaders: true,
 	})
 	if err != nil {
-		logrus.Fatalf("无法创建编码器: %v", err)
+		logrus.Fatalf("failed to create encoder: %v", err)
 	}
 	defer encoder.Close()
 
-	// 获取并发送SPS/PPS头
+// fetch and send the SPS/PPS headers
 	headers, err := encoder.GetHeaders()
 	if err != nil {
-		logrus.Warnf("无法获取编码器头: %v", err)
+		logrus.Warnf("failed to fetch encoder headers: %v", err)
 	} else if len(headers) > 0 {
-		logrus.Debugf("发送编码器头 (%d 字节)", len(headers))
+		logrus.Debugf("sent encoder headers (%d bytes)", len(headers))
 	}
 
-	// 创建Mat对象用于存储帧
+// create a Mat to hold the frame
 	frame := gocv.NewMat()
 	defer frame.Close()
 
-	// 预览窗口只创建一次（上游在循环内每帧新建窗口，会泄漏并导致进程退出）。
-	// 设置环境变量 nowindow=1 可完全禁用预览，便于无头运行。
+// The preview window is created only once (upstream recreates it every frame inside the loop, which leaks and causes the process to exit).
+// Set the nowindow=1 environment variable to disable the preview entirely, for headless runs.
 	var window *gocv.Window
 	if os.Getenv("nowindow") != "1" {
 		window = gocv.NewWindow("Encoded Camera Feed")
@@ -58,28 +58,28 @@ func StartEncodedStream[T interface{ int | string }](source T, wg *sync.WaitGrou
 	frameID := uint16(0)
 	for {
 		if ok := stream.Read(&frame); !ok {
-			logrus.Error("无法读取摄像头帧")
+		logrus.Error("failed to read camera frame")
 			break
 		}
 
 		if frame.Empty() {
-			logrus.Warn("空帧")
+		logrus.Warn("empty frame")
 			continue
 		}
 
-		// 编码帧
+	// encode the frame
 		encodedData, err := encoder.EncodeFrame(frame)
 		if err != nil {
-			logrus.Fatalf("编码失败: %v", err)
+		logrus.Fatalf("encoding failed: %v", err)
 			continue
 		}
 
-		// 如果编码器缓冲中，跳过
+	// skip if the encoder is buffering
 		if len(encodedData) == 0 {
 			continue
 		}
 
-		logrus.Debugf("帧 %d 编码完成，大小: %d 字节（原始: %d 字节）",
+	logrus.Debugf("frame %d encoding done, size: %d bytes (original: %d bytes)",
 			frameID, len(encodedData), len(frame.ToBytes()))
 
 		SendPacket(conn, encodedData, frameID)
@@ -93,12 +93,12 @@ func StartEncodedStream[T interface{ int | string }](source T, wg *sync.WaitGrou
 		}
 	}
 
-	// 刷新编码器
-	logrus.Debug("刷新编码器缓冲区")
+// flush the encoder
+logrus.Debug("flushing encoder buffer")
 	flushedData, _ := encoder.Flush()
 	if len(flushedData) > 0 {
 		conn.Write(flushedData)
-		logrus.Debug("发送刷新数据: %d 字节", len(flushedData))
+	logrus.Debug("sent flush data: %d bytes", len(flushedData))
 	}
-	logrus.Debug("编码流传输完成")
+logrus.Debug("encoded stream finished")
 }

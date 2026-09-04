@@ -25,7 +25,7 @@ func Publish() {
 				IsPaused:          false,
 			})
 			if err != nil {
-				logrus.Warnf("pb序列化失败: %v", err)
+				logrus.Warnf("pb serialization failed: %v", err)
 			}
 			err = server.Publish("GameStatus", out, false, 0)
 		}

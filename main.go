@@ -22,5 +22,5 @@ func main() {
 	go referee.Publish()
 
 	wg.Wait()
-	logrus.Infof("退出程序")
+	logrus.Infof("exiting program")
 }

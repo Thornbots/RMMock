@@ -164,7 +164,7 @@ message MapClickInfoNotify {
   float map_y = 10;
 }
 
-// 原文中为`Rader`，这里作了更正
+// The original text says `Rader`; corrected here
 // https://qingflow.com/appView/c5rf6rkkbs02/shareView/c5rf6slgbs02?applyId=678460345
 message RadarInfoToClient {
   uint32 target_robot_id = 1;
@@ -216,7 +216,7 @@ message RuneStatusSync {
   uint32 average_rings = 3;
 }
 
-// 原文中为Sentinel，这里作了更正
+// The original text says Sentinel; corrected here
 // https://qingflow.com/appView/c5rf6rkkbs02/shareView/c5rf6slgbs02?applyId=678465690
 message SentryStatusSync {
   uint32 posture_id = 1;
@@ -233,13 +233,13 @@ message DartSelectTargetStatusSync {
   bool open = 2;
 }
 
-// 原文中为Sentinel，这里作了更正
+// The original text says Sentinel; corrected here
 // https://qingflow.com/appView/c5rf6rkkbs02/shareView/c5rf6slgbs02?applyId=678465690
 message SentryCtrlCommand {
   uint32 command_id = 1;
 }
 
-// 原文中为Sentinel，这里作了更正
+// The original text says Sentinel; corrected here
 // https://qingflow.com/appView/c5rf6rkkbs02/shareView/c5rf6slgbs02?applyId=678465690
 message SentryCtrlResult {
   uint32 command_id = 1;

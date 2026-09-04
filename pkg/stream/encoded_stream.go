@@ -3,6 +3,7 @@ package stream
 import (
 	"github.com/sirupsen/logrus"
 	"gocv.io/x/gocv"
+	"os"
 	"sync"
 )
 
@@ -46,6 +47,14 @@ func StartEncodedStream[T interface{ int | string }](source T, wg *sync.WaitGrou
 	frame := gocv.NewMat()
 	defer frame.Close()
 
+	// 预览窗口只创建一次（上游在循环内每帧新建窗口，会泄漏并导致进程退出）。
+	// 设置环境变量 nowindow=1 可完全禁用预览，便于无头运行。
+	var window *gocv.Window
+	if os.Getenv("nowindow") != "1" {
+		window = gocv.NewWindow("Encoded Camera Feed")
+		defer window.Close()
+	}
+
 	frameID := uint16(0)
 	for {
 		if ok := stream.Read(&frame); !ok {
@@ -76,10 +85,11 @@ func StartEncodedStream[T interface{ int | string }](source T, wg *sync.WaitGrou
 		SendPacket(conn, encodedData, frameID)
 		frameID = (frameID + 1) % 65535
 
-		window := gocv.NewWindow("Encoded Camera Feed")
-		window.IMShow(frame)
-		if window.WaitKey(1) >= 0 {
-			break
+		if window != nil {
+			window.IMShow(frame)
+			if window.WaitKey(1) >= 0 {
+				break
+			}
 		}
 	}
 

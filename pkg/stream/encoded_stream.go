@@ -20,7 +20,7 @@ func StartEncodedStream[T interface{ int | string }](source T, wg *sync.WaitGrou
 	streamParam := GetOpenCVCaptureParam(stream)
 	logrus.Debugf("video resolution: %dx%d, FPS: %.2f", streamParam.frameWidth, streamParam.frameHeight, streamParam.fps)
 
-// create the HEVC encoder
+	// create the HEVC encoder
 	encoder, err := FFmpegEncoderFactory(EncoderConfig{
 		Width:         streamParam.frameWidth,
 		Height:        streamParam.frameHeight,
@@ -35,7 +35,7 @@ func StartEncodedStream[T interface{ int | string }](source T, wg *sync.WaitGrou
 	}
 	defer encoder.Close()
 
-// fetch and send the SPS/PPS headers
+	// fetch and send the SPS/PPS headers
 	headers, err := encoder.GetHeaders()
 	if err != nil {
 		logrus.Warnf("failed to fetch encoder headers: %v", err)
@@ -43,12 +43,12 @@ func StartEncodedStream[T interface{ int | string }](source T, wg *sync.WaitGrou
 		logrus.Debugf("sent encoder headers (%d bytes)", len(headers))
 	}
 
-// create a Mat to hold the frame
+	// create a Mat to hold the frame
 	frame := gocv.NewMat()
 	defer frame.Close()
 
-// The preview window is created only once (upstream recreates it every frame inside the loop, which leaks and causes the process to exit).
-// Set the nowindow=1 environment variable to disable the preview entirely, for headless runs.
+	// The preview window is created only once (upstream recreates it every frame inside the loop, which leaks and causes the process to exit).
+	// Set the nowindow=1 environment variable to disable the preview entirely, for headless runs.
 	var window *gocv.Window
 	if os.Getenv("nowindow") != "1" {
 		window = gocv.NewWindow("Encoded Camera Feed")
@@ -58,28 +58,28 @@ func StartEncodedStream[T interface{ int | string }](source T, wg *sync.WaitGrou
 	frameID := uint16(0)
 	for {
 		if ok := stream.Read(&frame); !ok {
-		logrus.Error("failed to read camera frame")
+			logrus.Error("failed to read camera frame")
 			break
 		}
 
 		if frame.Empty() {
-		logrus.Warn("empty frame")
+			logrus.Warn("empty frame")
 			continue
 		}
 
-	// encode the frame
+		// encode the frame
 		encodedData, err := encoder.EncodeFrame(frame)
 		if err != nil {
-		logrus.Fatalf("encoding failed: %v", err)
+			logrus.Fatalf("encoding failed: %v", err)
 			continue
 		}
 
-	// skip if the encoder is buffering
+		// skip if the encoder is buffering
 		if len(encodedData) == 0 {
 			continue
 		}
 
-	logrus.Debugf("frame %d encoding done, size: %d bytes (original: %d bytes)",
+		logrus.Debugf("frame %d encoding done, size: %d bytes (original: %d bytes)",
 			frameID, len(encodedData), len(frame.ToBytes()))
 
 		SendPacket(conn, encodedData, frameID)
@@ -93,12 +93,12 @@ func StartEncodedStream[T interface{ int | string }](source T, wg *sync.WaitGrou
 		}
 	}
 
-// flush the encoder
-logrus.Debug("flushing encoder buffer")
+	// flush the encoder
+	logrus.Debug("flushing encoder buffer")
 	flushedData, _ := encoder.Flush()
 	if len(flushedData) > 0 {
 		conn.Write(flushedData)
-	logrus.Debug("sent flush data: %d bytes", len(flushedData))
+		logrus.Debug("sent flush data: %d bytes", len(flushedData))
 	}
-logrus.Debug("encoded stream finished")
+	logrus.Debug("encoded stream finished")
 }

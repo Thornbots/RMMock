@@ -10,12 +10,12 @@ import (
 func GetUDPConn() *net.UDPConn {
 	serverAddr, err := net.ResolveUDPAddr("udp", "0.0.0.0:3334")
 	if err != nil {
-	logrus.Fatalf("failed to resolve server address: %v", err)
+		logrus.Fatalf("failed to resolve server address: %v", err)
 	}
 
 	conn, err := net.DialUDP("udp", nil, serverAddr)
 	if err != nil {
-	logrus.Fatalf("failed to connect to UDP server: %v", err)
+		logrus.Fatalf("failed to connect to UDP server: %v", err)
 	}
 	return conn
 }
@@ -32,7 +32,7 @@ func PacketFactory(frameID, sliceID uint16, frameSize uint32, sliceData []byte) 
 }
 
 func SendPacket(conn *net.UDPConn, encodedData []byte, frameID uint16) {
-// calculate how many slices are needed
+	// calculate how many slices are needed
 	packetSize := 1400 - 8// max recommended UDP packet size, leaving room for headers
 	frameSize := len(encodedData)
 	totalSlices := frameSize / packetSize
@@ -40,7 +40,7 @@ func SendPacket(conn *net.UDPConn, encodedData []byte, frameID uint16) {
 		totalSlices++
 	}
 
-// send each slice
+	// send each slice
 	for sliceID := uint16(0); sliceID < uint16(totalSlices); sliceID++ {
 		start := int(sliceID) * packetSize
 		end := start + packetSize
@@ -48,13 +48,13 @@ func SendPacket(conn *net.UDPConn, encodedData []byte, frameID uint16) {
 			end = len(encodedData)
 		}
 
-	// send the data packet to the server over UDP
+		// send the data packet to the server over UDP
 		packet := PacketFactory(frameID, sliceID, uint32(frameSize), encodedData[start:end])
 		_, err := conn.Write(packet)
 		if err != nil {
-		logrus.Errorf("failed to send slice: %v", err)
+			logrus.Errorf("failed to send slice: %v", err)
 			continue
 		}
-	logrus.Debugf("sent slice %d", sliceID)
+		logrus.Debugf("sent slice %d", sliceID)
 	}
 }

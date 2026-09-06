@@ -2,7 +2,7 @@ package stream
 
 import "gocv.io/x/gocv"
 
-// EncoderConfig 编码器配置
+// EncoderConfig describes the encoder configuration
 type EncoderConfig struct {
 	Width         int
 	Height        int
@@ -10,7 +10,7 @@ type EncoderConfig struct {
 	Bitrate       int    // kbps
 	Preset        string // https://trac.ffmpeg.org/wiki/Encode/H.265#ConstantRateFactorCRF
 	Tune          string // https://trac.ffmpeg.org/wiki/Encode/H.265#ConstantRateFactorCRF
-	RepeatHeaders bool   // 是否在每帧前重复发送SPS/PPS头
+	RepeatHeaders bool   // whether to resend the SPS/PPS headers before every frame
 }
 
 type Encoder interface {

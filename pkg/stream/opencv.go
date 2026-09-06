@@ -22,7 +22,7 @@ func GetOpenCVCaptureParam(capture *gocv.VideoCapture) OpenCVCaptureParams {
 func GetOpencvVideoStream[T interface{ int | string }](source T) *gocv.VideoCapture {
 	stream, err := gocv.OpenVideoCapture(source)
 	if err != nil {
-		log.Fatalf("无法打开视频流: %v", err)
+		log.Fatalf("failed to open video stream: %v", err)
 	}
 	return stream
 }
